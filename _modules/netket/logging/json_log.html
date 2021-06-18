@@ -110,7 +110,6 @@
 <span class="c1"># See the License for the specific language governing permissions and</span>
 <span class="c1"># limitations under the License.</span>
 
-<span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">orjson</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
@@ -189,7 +188,6 @@
 <span class="sd">            mode: Specify the behaviour in case the file already exists at this</span>
 <span class="sd">                output_prefix. Options are</span>
 <span class="sd">                - `[w]rite`: (default) overwrites file if it already exists;</span>
-<span class="sd">                - `[a]ppend`: appends to the file if it exists, overwise creates it;</span>
 <span class="sd">                - `[x]` or `fail`: fails if file already exists;</span>
 <span class="sd">            save_params: bool flag indicating whever variables of the variational state</span>
 <span class="sd">                should be serialized at some interval. The output file is overwritten</span>
@@ -213,21 +211,12 @@
                 <span class="s2">&quot;`[x]`(fail).&quot;</span>
             <span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;append&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Append mode is no longer supported.&quot;</span><span class="p">)</span>
+
         <span class="n">file_exists</span> <span class="o">=</span> <span class="n">_exists_json</span><span class="p">(</span><span class="n">output_prefix</span><span class="p">)</span>
 
-        <span class="n">starting_json_content</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Output&quot;</span><span class="p">:</span> <span class="p">[]}</span>
-
-        <span class="k">if</span> <span class="n">file_exists</span> <span class="ow">and</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;append&quot;</span><span class="p">:</span>
-            <span class="c1"># if there is only the .mpacck file but not the json one, raise an error</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">_path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_prefix</span> <span class="o">+</span> <span class="s2">&quot;.log&quot;</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;History file does not exists, but wavefunction file does.&quot;</span>
-                    <span class="s2">&quot;Please change `output_prefix or set mode=`write`.&quot;</span>
-                <span class="p">)</span>
-
-            <span class="n">starting_json_content</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">output_prefix</span> <span class="o">+</span> <span class="s2">&quot;.log&quot;</span><span class="p">))</span>
-
-        <span class="k">elif</span> <span class="n">file_exists</span> <span class="ow">and</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;fail&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">file_exists</span> <span class="ow">and</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;fail&quot;</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;Output file already exists. Either delete it manually or&quot;</span>
                 <span class="s2">&quot;change `output_prefix`.&quot;</span>
