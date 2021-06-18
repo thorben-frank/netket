@@ -14,13 +14,11 @@
 
 import itertools
 import netket as nk
-import networkx as nx
 import numpy as np
 import pytest
-from netket.hilbert import *
+from netket.hilbert import Spin, Fock, Qubit, CustomHilbert, DoubledHilbert
 
 import jax
-from jax import numpy as jnp
 
 from .. import common
 
@@ -50,7 +48,7 @@ hilberts["Fock"] = Fock(n_max=5, N=41)
 hilberts["Fock with total number"] = Fock(n_max=3, n_particles=110, N=120)
 
 # Qubit
-hilberts["Qubit"] = nk.hilbert.Qubit(100)
+hilberts["Qubit"] = Qubit(100)
 
 # Custom Hilbert
 hilberts["Custom Hilbert"] = CustomHilbert(local_states=[-1232, 132, 0], N=70)
@@ -81,11 +79,10 @@ hilberts["Qubit Small"] = nk.hilbert.Qubit(N=1)
 hilberts["Custom Hilbert Small"] = CustomHilbert(local_states=[-1232, 132, 0], N=5)
 
 # Custom Hilbert
-hilberts["Doubled Hilbert"] = nk.hilbert.DoubledHilbert(
+hilberts["Doubled Hilbert"] = DoubledHilbert(
     CustomHilbert(local_states=[-1232, 132, 0], N=5)
 )
 
-# hilberts["Tensor: Spin x Fock"] = Spin(s=0.5, N=4) * Fock(4, N=2)
 
 #
 # Tests
@@ -135,31 +132,6 @@ def test_random_states(hi):
 @pytest.mark.parametrize(
     "hi", [pytest.param(hi, id=name) for name, hi in hilberts.items()]
 )
-def test_random_states_legacy(hi):
-    nk.legacy.random.seed(12345)
-
-    assert hi.size > 0
-    assert hi.local_size > 0
-    assert len(hi.local_states) == hi.local_size
-
-    if hi.is_discrete:
-        rstate = np.zeros(hi.size)
-        local_states = hi.local_states
-        for i in range(100):
-            hi.random_state(out=rstate)
-            for state in rstate:
-                assert state in local_states
-
-        assert hi.random_state().shape == (hi.size,)
-        assert hi.random_state(10).shape == (10, hi.size)
-        assert hi.random_state(size=10).shape == (10, hi.size)
-        assert hi.random_state(size=(10,)).shape == (10, hi.size)
-        assert hi.random_state(size=(10, 2)).shape == (10, 2, hi.size)
-
-
-@pytest.mark.parametrize(
-    "hi", [pytest.param(hi, id=name) for name, hi in hilberts.items()]
-)
 def test_hilbert_index(hi):
     assert hi.size > 0
     assert hi.local_size > 0
@@ -189,9 +161,9 @@ def test_hilbert_index(hi):
     op = nk.operator.Heisenberg(hilbert=Spin(s=0.5, N=g.n_nodes), graph=g)
 
     with pytest.raises(RuntimeError):
-        m1 = op.to_dense()
+        op.to_dense()
     with pytest.raises(RuntimeError):
-        m2 = op.to_sparse()
+        op.to_sparse()
 
 
 def test_state_iteration():
@@ -207,8 +179,8 @@ def test_deprecations():
     g = nk.graph.Edgeless(3)
 
     with pytest.warns(FutureWarning):
-        hilbert = Spin(s=0.5, graph=g)
+        Spin(s=0.5, graph=g)
 
     with pytest.warns(FutureWarning):
         with pytest.raises(ValueError):
-            hilbert = Spin(s=0.5, graph=g, N=3)
+            Spin(s=0.5, graph=g, N=3)
